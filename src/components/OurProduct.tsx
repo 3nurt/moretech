@@ -1,6 +1,5 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef } from "react";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
-import { useInView } from "react-intersection-observer";
 
 interface Feature {
   title: string;
@@ -60,96 +59,98 @@ const FeatureCard: React.FC<{ feature: Feature; index: number }> = ({ feature, i
   const cardRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: cardRef,
-    offset: ["start end", "end start"],
+    offset: ["start end", "end start"]
   });
 
-  const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.8, 1, 0.8]);
-  const opacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0]);
-  const rotateX = useTransform(scrollYProgress, [0, 0.5, 1], [30, 0, -30]);
-  const perspective = useTransform(scrollYProgress, [0, 0.5, 1], [800, 1200, 800]);
-
   const springConfig = { stiffness: 100, damping: 30, mass: 0.2 };
+
+  const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.8, 1, 0.8]);
+  const rotateX = useTransform(scrollYProgress, [0, 0.5, 1], [20, 0, -20]);
+  const translateZ = useTransform(scrollYProgress, [0, 0.5, 1], [-100, 0, -100]);
+
   const springY = useSpring(y, springConfig);
-  const springScale = useSpring(scale, springConfig);
   const springOpacity = useSpring(opacity, springConfig);
+  const springScale = useSpring(scale, springConfig);
   const springRotateX = useSpring(rotateX, springConfig);
+  const springTranslateZ = useSpring(translateZ, springConfig);
 
   return (
-    <motion.div
-      ref={cardRef}
-      className="min-h-screen flex items-center justify-center py-20 px-4"
-      style={{
-        perspective: perspective,
-      }}
-    >
+    <div className="h-screen snap-center flex items-center justify-center px-4" ref={cardRef}>
       <motion.div
-        className="w-full max-w-4xl bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-2xl"
+        className="w-full max-w-4xl"
         style={{
+          opacity: springOpacity,
           y: springY,
           scale: springScale,
-          opacity: springOpacity,
           rotateX: springRotateX,
+          translateZ: springTranslateZ,
+          transformPerspective: 1000,
         }}
       >
-        <div className="relative aspect-video overflow-hidden">
-          <motion.img
-            src={feature.image}
-            alt={feature.title}
-            className="w-full h-full object-cover"
-            initial={{ scale: 1.2 }}
-            whileInView={{ scale: 1 }}
-            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-2xl">
+          <div className="relative aspect-video overflow-hidden">
+            <motion.img
+              src={feature.image}
+              alt={feature.title}
+              className="w-full h-full object-cover"
+              initial={{ scale: 1.2 }}
+              whileInView={{ scale: 1 }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          </div>
 
-        <div className="p-8">
-          <motion.h3
-            className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-500"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-          >
-            {feature.title}
-          </motion.h3>
+          <div className="p-8">
+            <motion.h3
+              className="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-500"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.6 }}
+            >
+              {feature.title}
+            </motion.h3>
 
-          <motion.p
-            className="text-xl text-gray-700 dark:text-gray-300 leading-relaxed"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-          >
-            {feature.description}
-          </motion.p>
+            <motion.p
+              className="text-xl text-gray-700 dark:text-gray-300 leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+            >
+              {feature.description}
+            </motion.p>
+          </div>
         </div>
       </motion.div>
-    </motion.div>
+    </div>
   );
 };
 
 const OurProduct: React.FC = () => {
   return (
     <section className="bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
-      <motion.div
-        className="min-h-screen flex items-center justify-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-      >
-        <div className="text-center px-4 py-20">
-          <h2 className="text-4xl sm:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-500">
-            Revolutionary Features
-          </h2>
-          <p className="text-xl text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
-            Experience the future of mobility with our cutting-edge smart wheelchair technology
-          </p>
-        </div>
-      </motion.div>
+      <div className="min-h-screen snap-y snap-mandatory overflow-y-scroll">
+        <motion.div
+          className="h-screen snap-center flex items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
+        >
+          <div className="text-center px-4">
+            <h2 className="text-4xl sm:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-500">
+              Revolutionary Features
+            </h2>
+            <p className="text-xl text-gray-700 dark:text-gray-300 max-w-2xl mx-auto">
+              Experience the future of mobility with our cutting-edge smart wheelchair technology
+            </p>
+          </div>
+        </motion.div>
 
-      {features.map((feature, index) => (
-        <FeatureCard key={index} feature={feature} index={index} />
-      ))}
+        {features.map((feature, index) => (
+          <FeatureCard key={index} feature={feature} index={index} />
+        ))}
+      </div>
     </section>
   );
 };
