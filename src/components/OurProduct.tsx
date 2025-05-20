@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 
 interface Feature {
@@ -55,7 +55,7 @@ const features: Feature[] = [
   },
 ];
 
-const FeatureCard: React.FC<{ feature: Feature; index: number }> = ({ feature, index }) => {
+const FeatureCard: React.FC<{ feature: Feature; index: number; isActive: boolean }> = ({ feature, index, isActive }) => {
   const cardRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: cardRef,
@@ -87,6 +87,9 @@ const FeatureCard: React.FC<{ feature: Feature; index: number }> = ({ feature, i
           rotateX: springRotateX,
           translateZ: springTranslateZ,
           transformPerspective: 1000,
+          pointerEvents: isActive ? "auto" : "none",
+          visibility: isActive ? "visible" : "hidden",
+          transition: "visibility 0s linear 0.3s",
         }}
       >
         <div className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-2xl">
@@ -128,9 +131,42 @@ const FeatureCard: React.FC<{ feature: Feature; index: number }> = ({ feature, i
 };
 
 const OurProduct: React.FC = () => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isTransitioning || !containerRef.current) return;
+
+      const container = containerRef.current;
+      const scrollPosition = container.scrollTop;
+      const viewportHeight = window.innerHeight;
+      const currentIndex = Math.round(scrollPosition / viewportHeight);
+
+      if (currentIndex !== activeIndex) {
+        setIsTransitioning(true);
+        setTimeout(() => {
+          setActiveIndex(currentIndex);
+          setIsTransitioning(false);
+        }, 3000); // 3-second delay
+      }
+    };
+
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [activeIndex, isTransitioning]);
+
   return (
     <section className="bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
-      <div className="min-h-screen snap-y snap-mandatory overflow-y-scroll">
+      <div 
+        ref={containerRef}
+        className="min-h-screen snap-y snap-mandatory overflow-y-scroll"
+        style={{ scrollBehavior: isTransitioning ? 'auto' : 'smooth' }}
+      >
         <motion.div
           className="h-screen snap-center flex items-center justify-center"
           initial={{ opacity: 0 }}
@@ -148,7 +184,12 @@ const OurProduct: React.FC = () => {
         </motion.div>
 
         {features.map((feature, index) => (
-          <FeatureCard key={index} feature={feature} index={index} />
+          <FeatureCard 
+            key={index} 
+            feature={feature} 
+            index={index} 
+            isActive={!isTransitioning || index === activeIndex}
+          />
         ))}
       </div>
     </section>
